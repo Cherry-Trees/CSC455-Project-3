@@ -225,9 +225,6 @@ void removeST(Node *symbolTable[HASH_TABLE_SIZE], char name[ID_MAX_SIZE]) {
 Node *pushFL(Node *freeList, Block block) {
     Node *newNode = (Node *)malloc(sizeof(Node));
     newNode->block = block;
-    // newNode->block.addr = block.addr;
-    // newNode->block.refs = block.refs;
-    // newNode->block.size = block.size;
     if (!freeList)
         newNode->next = NULL;
     else

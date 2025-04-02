@@ -1,22 +1,17 @@
+/**
+ *  Author: Jamie Miles
+ *  Date:   4/1/2025
+ * 
+ *  Lexer implementation file.
+ */
+
 #include "lexer.h"
-#include <stdio.h>
 
 static bool initedDFA = 0;
 static int dfa[NUM_STATES][256];
-static size_t currentLineno = 1;
+static int currentLineno = 1;
 
-// static char *keywords[] = {
-//     "int", 
-//     "float", 
-//     "while", 
-//     "if", 
-//     "then", 
-//     "else", 
-//     "void", 
-//     "begin", 
-//     "end" 
-// };
-
+// Initialize DFA.
 void initDFA(int dfa[NUM_STATES][256]) {
 
     // Default every transition to -1.
@@ -33,75 +28,27 @@ void initDFA(int dfa[NUM_STATES][256]) {
     for (char ch = '0'; ch <= '9'; ch++) dfa[0][ch] = 2; // 0 -> 2
     for (char ch = '0'; ch <= '9'; ch++) dfa[2][ch] = 2; // 2 -> 2
 
-    dfa[0]['='] = 3;                                     // 0 -> 9
-
-    dfa[0]['('] = 4;                                    // 0 -> 10
-    dfa[0][')'] = 5;                                    // 0 -> 11
-
-    dfa[0][';'] = 6;                                    // 0 -> 16
+    dfa[0]['='] = 3;                                     // 0 -> 3
+    dfa[0]['('] = 4;                                    // 0 -> 4
+    dfa[0][')'] = 5;                                    // 0 -> 5
+    dfa[0][';'] = 6;                                    // 0 -> 6
 
     initedDFA = 1;
 }
 
-// TokenType getTokenType(int state) {
-//     switch (state) {
-//       case  0: return ERROR;
-//       case  1: return ID;
-//       case  2: return NUM_INT;
-//       case  3: return ERROR;
-//       case  9: return ASSIGNOP;
-//       case 10: return LPAREN;
-//       case 11: return RPAREN;
-//       case 12: return ERROR;
-//       case 14: return ERROR;
-//       case 16: return SEMICOLON;
-//       default: return EOF_TOK;
-//     }
-//   }
-  
-//   // Reserved array index -> Token type.
-//   TokenType getKeywordTokenType(int index) {
-//     switch (index) {
-//       case  0: return FREE;
-//       case  1: return DUMP;
-//       case  2: return COMPRESS;
-//       case  3: return ALLOC;
-//       case  4: return THEN;
-//       case  5: return ELSE;
-//       case  6: return VOID;
-//       case  7: return BEGIN;
-//       case  8: return END;
-  
-//       default: return ERROR;
-//     }
-//   }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-size_t getToken(Token *token, const char *is, size_t index) {
+int getToken(Token *token, const char *is, int index) {
     
+    // Initialize token attributes.
     token->length = 0;
     token->lineno = currentLineno;
     token->type = ERROR;
     token->value[0] = 0;
     
     if (!is || !token)
-        return 0xFFFFFFFFFFFFFFFF;
+        return -1;
     
     // Remove ws
     char ch = is[index];
-    
     while (ch == ' ' || ch == '\t' || ch == '\n') {
         if (ch == '\n') 
             token->lineno = ++currentLineno;
@@ -111,8 +58,12 @@ size_t getToken(Token *token, const char *is, size_t index) {
     ch = 0;
     int curr_state = 0;
     int prev_state = -1;
+
+    // Initialize the DFA if not already.
     if (!initedDFA)
         initDFA(dfa);
+
+    // Traverse the DFA to get token.
     while (curr_state != -1) {
         ch = is[index++];
         if (ch == '#') {
@@ -129,50 +80,10 @@ size_t getToken(Token *token, const char *is, size_t index) {
     --index;
     token->value[--token->length] = 0;
     if (*token->value)
-        token->type = prev_state;
+        token->type = (TokenType)prev_state;
     else
         token->type = EOF_TOK;
 
+    // Return index of next token.
     return index;
-}
-
-bool isFreeKeyword(char s[ID_MAX_SIZE]) {
-    return 
-        s[0] == 'f' &&
-        s[1] == 'r' &&
-        s[2] == 'e' &&
-        s[3] == 'e' &&
-        s[4] == '\0';
-}
-
-bool isDumpKeyword(char s[ID_MAX_SIZE]) {
-    return 
-        s[0] == 'd' &&
-        s[1] == 'u' &&
-        s[2] == 'm' &&
-        s[3] == 'p' &&
-        s[4] == '\0';
-}
-
-bool isCompressKeyword(char s[ID_MAX_SIZE]) {
-    return 
-        s[0] == 'c' &&
-        s[1] == 'o' &&
-        s[2] == 'm' &&
-        s[3] == 'p' &&
-        s[4] == 'r' &&
-        s[5] == 'e' &&
-        s[6] == 's' &&
-        s[7] == 's' &&
-        s[8] == '\0';
-}
-
-bool isAllocKeyword(char s[ID_MAX_SIZE]) {
-    return 
-        s[0] == 'a' &&
-        s[1] == 'l' &&
-        s[2] == 'l' &&
-        s[3] == 'o' &&
-        s[4] == 'c' &&
-        s[5] == '\0';
 }

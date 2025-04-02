@@ -1,13 +1,16 @@
+/**
+ *  Author: Jamie Miles
+ *  Date:   4/1/2025
+ * 
+ *  Lexer header file.
+ */
+
 #ifndef LEXER_H
 #define LEXER_H
 
-#define NUM_STATES 20
-// #define NUM_KEYWORDS sizeof(keywords) / sizeof(char *)
-#define ID_MAX_SIZE 64
+#include "def.h"
 
-#include <stddef.h>
-#include <stdbool.h>
-
+// Token types.
 typedef enum {
     ERROR,
     ID, 
@@ -19,18 +22,14 @@ typedef enum {
     EOF_TOK
 } TokenType;
 
+// Structure holding token value, length, line number, and type.
 typedef struct {
     char value[ID_MAX_SIZE];
-    size_t length, lineno;
+    int length, lineno;
     TokenType type;
 } Token;
 
 void initDFA(int dfa[NUM_STATES][256]);
-size_t getToken(Token *token, const char *is, size_t index);
-
-bool isFreeKeyword(char s[ID_MAX_SIZE]);
-bool isDumpKeyword(char s[ID_MAX_SIZE]);
-bool isCompressKeyword(char s[ID_MAX_SIZE]);
-bool isAllocKeyword(char s[ID_MAX_SIZE]);
+int getToken(Token *token, const char *is, int index);
 
 #endif

@@ -1,15 +1,55 @@
+/**
+ *  Author: Jamie Miles
+ *  Date:   4/1/2025
+ * 
+ *  Driver code.
+ */
+
 #include <stdio.h>
-#include "lexer.h"
+#include "parser.h"
 
 int main(int argc, char *argv[]) {
 
-    const char *code = "x = 5;y=6 ; free(x);";
-    Token token;
-    size_t index = 0;
-    while (token.type != EOF_TOK) {
-        index = getToken(&token, code, index);
-        printf("%d -> %s\n", token.type, token.value);
+    // Heap size and file name.
+    int size;
+    char fname[FNAME_MAX_SIZE];
+
+    // Prompt for heap size and input file name.
+    printf("Please enter the initial freelist (heap) size: ");
+    scanf("%d", &size);
+    printf("Please enter the name of an input file: ");
+    scanf("%s", fname);
+
+    FILE *file = fopen(fname, "r"); // Pointer to file.
+    char rbuf[RBUF_SIZE];           // Read buffer.
+    char *input = NULL;             // Input code.
+    
+    if (file) {
+        
+        // Read file into buffer.
+        while(fgets(rbuf, RBUF_SIZE, file)) {
+            
+            // Append buffer to end of input.
+            char *prev = input;
+            int inputSize = strlen(rbuf) + 1;
+            if (input)
+                inputSize += strlen(input);
+            input = malloc(inputSize);
+            input[0] = '\0';
+            if (prev) {
+                strcat(input, prev);
+                free(prev);
+            }
+            strcat(input, rbuf);
+        }
+
+        // Close file.
+        fclose(file);
     }
+
+    // Run the program.
+    if (input) 
+        prog(input, size);
 
     return 0;
 }

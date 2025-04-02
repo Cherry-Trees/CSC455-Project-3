@@ -1,19 +1,49 @@
 #include "memory.h"
 
-Node *compress(Node *freeList);
+Node *compress(Node *freeList) {
+    if (freeList && freeList->next) {
+        for (Node *right = freeList->next, *left = freeList; right; left = right, right = right->next) {
+            if (left->block.addr + left->block.size == right->block.addr) {
+                left->block.size += right->block.size;
+                left->next = right->next;
+                free(right);
+                return compress(freeList);
+            }
+        }
+    }
+    return freeList;
+}
+
+Node *associate(Node *freeList, Node *symbolTable[HASH_TABLE_SIZE], char nameLhs[ID_MAX_SIZE], char nameRhs[ID_MAX_SIZE]) {
+    if (strcmp(nameLhs, nameRhs) == 0)
+        return freeList;
+
+    Variable *varRhs = find(symbolTable, nameRhs);
+    if (varRhs) {
+        varRhs->block->refs++;
+
+        freeList = dealloc(freeList, symbolTable, nameLhs);
+        Variable varLhs;
+        strcpy(varLhs.name, nameLhs);
+        varLhs.block = varRhs->block;
+        insert(symbolTable, varLhs);
+    }
+    return freeList;
+}
+
 void dump(Node *freeList, Node *symbolTable[HASH_TABLE_SIZE]) {
     printf("Variables:\n");
     for (int i = 0; i < HASH_TABLE_SIZE; ++i)
         for (Node *node = symbolTable[i]; node; node = node->next)
             printf(
-                "%s:%d(%d) [%d], ", 
+                "%s:%d(%d) [%d]\n", 
                 node->var.name, 
                 node->var.block->addr, 
                 node->var.block->size, 
                 node->var.block->refs
             );
     
-    printf("\nFree List:\n");
+    printf("Free List:\n");
     for (Node *node = freeList; node; node = node->next) {
         printf(
             "%d(%d) [%d], ",  
@@ -147,9 +177,6 @@ void remove(Node *symbolTable[HASH_TABLE_SIZE], char name[ID_MAX_SIZE]) {
         }
     }
 }
-
-
-void associate(Node *symbolTable[HASH_TABLE_SIZE]);
 
 Node *push(Node *freeList, Block block) {
     Node *newNode = (Node *)malloc(sizeof(Node));

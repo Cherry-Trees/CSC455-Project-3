@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
         fclose(file);
     }
 
-    // Run the program.
+    // Run the interpreter.
     if (input) 
         prog(input, size);
 

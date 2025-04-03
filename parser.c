@@ -92,6 +92,7 @@ Node *stmt(Token *token, const char *is, int *index, Node *freeList, Node *symbo
     }
     return freeList;
 }
+
 Node *rhs(Token *token, const char *is, int *index, Node *freeList, Node *symbolTable[HASH_TABLE_SIZE], char nameLhs[ID_MAX_SIZE]) {
     if (token->type != ID)  // Check for ID.
         error("Missing RHS.", token->lineno, freeList, symbolTable);
